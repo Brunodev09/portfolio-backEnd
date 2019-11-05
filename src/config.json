@@ -1,0 +1,4 @@
+{
+  "mongoAccess": "mongodb+srv://brunodev09:intento08@portfolio-vdtgv.mongodb.net/portfolioBackEnd?retryWrites=true&w=majority",
+  "jwt": "3872489324H32J4NH23JKH4JK"
+}

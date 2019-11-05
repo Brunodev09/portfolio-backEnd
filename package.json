@@ -1,0 +1,26 @@
+{
+  "name": "tsbackend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "dev": "ts-node ./src/index.ts"
+  },
+  "author": "brunodev09",
+  "license": "ISC",
+  "dependencies": {
+    "@types/crypto-js": "^3.1.43",
+    "@types/node": "^12.12.5",
+    "cors": "^2.8.5",
+    "crypto-js": "^3.1.9-1",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.7.8",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.7.2",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "@types/winston": "^2.4.4"
+  }
+}
