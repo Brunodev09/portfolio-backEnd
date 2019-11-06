@@ -16,9 +16,11 @@ export interface IComment {
 
 export interface IPost {
     author: string | mongoose.Document;
+    name: string;
     title: string;
     body: string;
-    comments: IComment[];
+    comments?: IComment[];
+    image?: string;
 }
 
 export interface Controller {

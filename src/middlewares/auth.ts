@@ -6,7 +6,7 @@ export default function auth(request: express.Request, response: express.Respons
     // x-auth-token --> name of the header param
     const token = request.header('x-auth-token');
 
-    if (!token) return response.status("401").json({msg: 'No token provided!'});
+    if (!token) return response.status("401").json({msg: 'Invalid headers!'});
 
     try {
         const decoded = jwt.verify(token, config.jwt);
