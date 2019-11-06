@@ -3,7 +3,7 @@ import express from 'express';
 import User from '../models/user';
 import Post from '../models/post';
 import logger from "../utils/logger";
-import { IUser, IPost } from "../interfaces";
+import { IUser, IPost, IComment } from "../interfaces";
 import mongoose from "mongoose";
 import middleware from "../middlewares/auth";
 
@@ -13,8 +13,9 @@ export default class PostController {
 
     private user: IUser | mongoose.Document;
     private posts: IPost | IPost[] | mongoose.Document;
+    private comments: IComment | IComment[] | mongoose.Document;
     private payload: mongoose.Document;
-    private obj: IPost;
+    private obj: IPost | IComment;
 
     constructor() {
         this.init();
@@ -26,6 +27,11 @@ export default class PostController {
         this.router.get(`${this.path}/:id`, middleware, this.get);
         this.router.put(`${this.path}/:id`, middleware, this.edit);
         this.router.delete(`${this.path}/:id`, middleware, this.delete);
+
+        this.router.post(`${this.path}/:id`, middleware, this.createComment);
+        this.router.get(`${this.path}/:id`, middleware, this.getAllComments);
+        this.router.put(`${this.path}/:id/:cid`, middleware, this.editComment);
+        this.router.delete(`${this.path}/:id/:cid`, middleware, this.deleteComment);
     }
 
     getAll = async (request: express.Request, response: express.Response) => {
@@ -37,7 +43,7 @@ export default class PostController {
         }
 
         if (this.posts) return response.status("200").json(this.posts);
-    }
+    };
 
     get = async (request: express.Request, response: express.Response) => {
         try {
@@ -49,11 +55,11 @@ export default class PostController {
 
         if (this.posts) return response.status("200").json(this.posts);
         return response.status("404").json({error: "No posts were found with this id!"});
-    }
+    };
 
     create = async (request: express.Request, response: express.Response) => {
 
-        const { title, body, image } = request.body;
+        const { title, body, image, privatePost } = request.body;
         if (!title || !body) return response.status("500").json({error: "Missing required data!"});
 
         this.user = await User.findById(request.user._id);
@@ -63,6 +69,7 @@ export default class PostController {
         const { name } = this.user;
         this.obj = { author: request.user._id, name, body, title };
         if (image) this.obj.image = image;
+        if (privatePost) this.obj.private = privatePost;
 
         this.payload = new Post(this.obj);
 
@@ -73,11 +80,11 @@ export default class PostController {
             return response.status("500").send('Internal server error');
         }
         if (this.payload) return response.status("200").json(this.payload);
-    }
+    };
 
     edit = async (request: express.Request, response: express.Response) => {
 
-        const { title, body, image } = request.body;
+        const { title, body, image, privatePost } = request.body;
         const { id } = request.params;
         if (!title || !body || !id) return response.status("500").json({error: "Missing required data!"});
 
@@ -88,7 +95,9 @@ export default class PostController {
 
         this.payload.title = title;
         this.payload.body = body;
-        if (image) this.obj.image = image;
+        if (image) (<IPost> this.obj).image = image;
+        if (privatePost) (<IPost> this.obj).private = privatePost;
+
 
         try {
             await this.payload.save();
@@ -97,7 +106,7 @@ export default class PostController {
             return response.status("500").send('Internal server error');
         }
         if (this.payload) return response.status("200").json(this.payload);
-    }
+    };
 
     delete = async (request: express.Request, response: express.Response) => {
 
@@ -111,13 +120,124 @@ export default class PostController {
 
         try {
             await this.payload.remove();
-        } catch(e) {
+        } catch (e) {
             logger.error(e);
             return response.status("500").send('Internal server error');
         }
         if (this.payload) return response.status("200").json({info: "Document deleted!"});
-    }
-    
+    };
+
+    createComment = async (request: express.Request, response: express.Response) => {
+
+        const { id } = request.params;
+        const { text } = request.body;
+
+        if (!id || !text) return response.status("500").json({error: "Missing required data!"});
+
+        try {
+            this.user = await User.findById(request.user._id);
+            this.posts = await Post.findById(id);
+        } catch (e) {
+            logger.error(e);
+            return response.status("500").json({error: "Internal server error!"});
+        }
+
+        if (!this.user || !this.posts) return response.status("500").json({error: "No user or posts found!"});
+
+        this.posts.comments.push({author: request.user._id, text});
+
+        try {
+            await this.posts.save();
+        } catch(e) {
+            logger.error(e);
+            return response.status("500").send('Internal server error');
+        }
+
+        return response.status("200").json(this.posts);
+    };
+
+    getAllComments = async (request: express.Request, response: express.Response) => {
+
+        const { id } = request.params;
+        if (!id) return response.status("500").json({error: "Missing required data!"});
+
+        try {
+            this.posts = await Post.findById(id);
+        } catch (e) {
+            logger.error(e);
+            return response.status("500").json({error: "Internal server error!"});
+        }
+
+        if (!this.posts || !this.posts.comments.length) return response.status("500").json({error: "No user or posts found!"});
+
+        return response.status("200").json(this.posts.comments);
+
+    };
+
+    editComment = async (request: express.Request, response: express.Response) => {
+
+        const { id, cid } = request.params;
+        const { text } = request.body;
+
+        if (!id || !cid || !text) return response.status("500").json({error: "Missing required data!"});
+
+        try {
+            this.posts = await Post.findById(id);
+        } catch (e) {
+            logger.error(e);
+            return response.status("500").json({error: "Internal server error!"});
+        }
+
+        if (!this.posts || !this.posts.comments.length) return response.status("500").json({error: "No user or posts found!"});
+
+        const index = this.posts.comments.findIndex(comment => comment._id.toString() === cid);
+
+        if (index === null || index === undefined) return response.status("500").json({error: "No comment associated with this id in this post!"});
+
+        this.posts.comments[index].text = text;
+
+        try  {
+            this.posts.save();
+        } catch (e) {
+            logger.error(e);
+            return response.status("500").json({error: "Internal server error!"});
+        }
+
+        return response.status("200").json(this.posts.comments[index]);
+
+    };
+
+    deleteComment = async (request: express.Request, response: express.Response) => {
+
+        const { id, cid } = request.params;
+        if (!id || !cid) return response.status("500").json({error: "Missing required data!"});
+
+        try {
+            this.posts = await Post.findById(id);
+        } catch (e) {
+            logger.error(e);
+            return response.status("500").json({error: "Internal server error!"});
+        }
+
+        if (!this.posts || !this.posts.comments.length) return response.status("500").json({error: "No user or posts found!"});
+
+        const index = this.posts.comments.findIndex(comment => comment._id.toString() === cid);
+
+        if (index === null || index === undefined) return response.status("500").json({error: "No comment associated with this id in this post!"});
+
+        this.posts.comments.splice(index, 1);
+
+        try  {
+            this.posts.save();
+        } catch (e) {
+            logger.error(e);
+            return response.status("500").json({error: "Internal server error!"});
+        }
+
+        return response.status("200").json(this.posts.comments);
+
+    };
+
 }
 
 

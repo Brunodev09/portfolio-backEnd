@@ -10,15 +10,17 @@ export interface IUser {
 }
 
 export interface IComment {
-    author: string | mongoose.Document;
+    author: string | mongoose.Types.ObjectId;
     text: string;
 }
 
+
 export interface IPost {
-    author: string | mongoose.Document;
+    author: string | mongoose.Types.ObjectId;
     name: string;
     title: string;
     body: string;
+    private?: boolean;
     comments?: IComment[];
     image?: string;
 }
