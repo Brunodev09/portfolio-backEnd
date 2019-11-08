@@ -38,7 +38,7 @@ export default class UserController {
             logger.error(e.message);
             return response.status("500").send('Internal server error');
         }
-    }
+    };
 
     login = async (request: express.Request, response: express.Response) => {
         let { email, password } = request.body;

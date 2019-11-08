@@ -23,8 +23,8 @@ export default class PostController {
 
     public init() {
         this.router.post(this.path, middleware, this.create);
-        this.router.get(this.path, middleware, this.getAll);
-        this.router.get(`${this.path}/:id`, middleware, this.get);
+        this.router.get(this.path, this.getAll);
+        this.router.get(`${this.path}/:id`, this.get);
         this.router.put(`${this.path}/:id`, middleware, this.edit);
         this.router.delete(`${this.path}/:id`, middleware, this.delete);
 
@@ -36,7 +36,7 @@ export default class PostController {
 
     getAll = async (request: express.Request, response: express.Response) => {
         try {
-            this.posts = await Post.find({author: request.user._id});
+            this.posts = await Post.find();
         } catch(e) {
             logger.info(e);
             return response.status("500").send('Internal server error');
