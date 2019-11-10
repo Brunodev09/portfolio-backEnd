@@ -36,7 +36,7 @@ export default class PostController {
 
     getAll = async (request: express.Request, response: express.Response) => {
         try {
-            this.posts = await Post.find();
+            this.posts = await Post.find({"private": false});
         } catch(e) {
             logger.info(e);
             return response.status("500").send('Internal server error');

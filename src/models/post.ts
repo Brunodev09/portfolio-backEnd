@@ -7,6 +7,11 @@ const Post = new Schema({
         ref: "User",
         required: true
     },
+    private: {
+        type: Boolean,
+        required: false,
+        default: false 
+    },
     title: {
         type: String,
         required: true,
