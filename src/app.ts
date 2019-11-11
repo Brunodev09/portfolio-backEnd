@@ -30,11 +30,11 @@ export default class Server {
     }
 
     private initMiddlewares() {
-        this.app.use(logMid);
         this.app.use(cors());
         this.app.use(express.json({
             extended: false
         }));
+        this.app.use(logMid);
     }
 
     private initControllers(controllers: Controller[]) {

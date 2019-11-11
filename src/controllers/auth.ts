@@ -49,19 +49,19 @@ export default class UserController {
         try {
             this.user = await User.findOne({ email: email });
 
-            if (!this.user) return response.status("500").json({ errors: 'No user with this credentials!' });
+            if (!this.user) return response.status("500").json({ error: 'No user with this credentials!' });
 
             password = SHA512(password);
             password = Base64.stringify(UTF8.parse(password));
 
-            if (this.user.password !== password) return response.status("500").json({ errors: 'Password incorrect!' });
+            if (this.user.password !== password) return response.status("500").json({ error: 'Password incorrect!' });
 
             const payload = {
                 user: this.user
             };
             jwt.sign(payload, config.jwt, { expiresIn: 360000 }, (err, token) => {
                 if (err) throw err;
-                response.status("200").json({ token });
+                response.status("200").json({ token, user: this.user });
             });
 
         } catch (e) {
