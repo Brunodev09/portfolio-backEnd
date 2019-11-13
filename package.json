@@ -4,7 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "dev": "ts-node ./src/index.ts"
+    "dev": "ts-node ./src/index.ts",
+    "build": "rm -R ./dist && tsc ./src && node ./dist"
   },
   "author": "brunodev09",
   "license": "ISC",
