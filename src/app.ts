@@ -15,9 +15,8 @@ export default class Server {
     public port: number;
     connection: Connection;
 
-    constructor(controllers: Controller[], port) {
+    constructor(controllers: Controller[]) {
         this.app = express();
-        this.port = port;
 
         this.DB();
         this.initMiddlewares();
@@ -25,7 +24,7 @@ export default class Server {
     }
 
     public listen() {
-        this.app.listen(this.port, () => logger.info(`Server running on port ${this.port}`));
+        this.app.listen(process.env.PORT, '0.0.0.0');
     }
 
     private initMiddlewares() {
