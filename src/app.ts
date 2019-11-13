@@ -24,7 +24,7 @@ export default class Server {
     }
 
     public listen() {
-        this.app.listen(process.env.PORT, '0.0.0.0');
+        this.app.listen(process.env.PORT || 5000, '0.0.0.0');
     }
 
     private initMiddlewares() {
