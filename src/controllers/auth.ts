@@ -61,7 +61,7 @@ export default class UserController {
             };
             jwt.sign(payload, config.jwt, { expiresIn: 360000 }, (err, token) => {
                 if (err) throw err;
-                response.status("200").json({ token, user: this.user });
+                response.status("200").json({ token, user: this.user.name, developer: this.user.dev });
             });
 
         } catch (e) {

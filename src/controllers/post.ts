@@ -65,6 +65,7 @@ export default class PostController {
         this.user = await User.findById(request.user._id);
 
         if (!this.user) return response.status("500").json({error: "No user found!"});
+        if (!this.user.dev) return response.status("500").json({error: "User is not authorized to post!"});
 
         const { name } = this.user;
         this.obj = { author: request.user._id, name, body, title };
