@@ -12,6 +12,11 @@ const Post = new Schema({
         required: false,
         default: false 
     },
+    category: {
+        type: String,
+        required: true,
+        default: "general"
+    },
     title: {
         type: String,
         required: true,

@@ -20,6 +20,7 @@ export interface IPost {
     name: string;
     title: string;
     body: string;
+    category: string;
     private?: boolean;
     comments?: IComment[];
     image?: string;
@@ -29,3 +30,4 @@ export interface Controller {
     path: string;
     router: Router;
 }
+
