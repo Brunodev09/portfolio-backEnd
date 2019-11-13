@@ -1,7 +1,6 @@
 import express from "express";
 import mongoose, { Connection } from "mongoose";
 import cors from "cors";
-import config from "./config.json";
 
 import logger from "./utils/logger";
 
@@ -45,7 +44,7 @@ export default class Server {
 
     private DB() {
         try {
-            this.connection = mongoose.connect(config.mongoAccess, {
+            this.connection = mongoose.connect(process.env.MONGO_ACCESS, {
                 useNewUrlParser: true,
                 useCreateIndex: true,
                 useUnifiedTopology: true

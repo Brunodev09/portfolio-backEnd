@@ -2,7 +2,6 @@ import express from 'express';
 
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
-import config from '../config.json';
 import {SHA512} from "crypto-js";
 import logger from "../utils/logger";
 import {IUser} from "../interfaces";
@@ -46,7 +45,7 @@ export default class UserController {
             const payload = {
                 user: this.user
             };
-            jwt.sign(payload, config.jwt, {expiresIn: 360000}, (err, token) => {
+            jwt.sign(payload, process.env.JWT, {expiresIn: 360000}, (err, token) => {
                 if (err) throw err;
                 response.status("200").json({token, user: this.user.name, developer: this.user.dev});
             });

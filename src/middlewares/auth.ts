@@ -1,6 +1,5 @@
 import express from 'express';
 import jwt from "jsonwebtoken";
-import config from "../config.json";
 
 export default function auth(request: express.Request, response: express.Response, next) {
     // x-auth-token --> name of the header param
@@ -9,7 +8,7 @@ export default function auth(request: express.Request, response: express.Respons
     if (!token) return response.status("401").json({error: 'Invalid headers!'});
 
     try {
-        const decoded = jwt.verify(token, config.jwt);
+        const decoded = jwt.verify(token, process.env.JWT);
         request.user = decoded.user;
         next();
 
