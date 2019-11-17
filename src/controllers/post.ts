@@ -121,6 +121,7 @@ export default class PostController {
             this.payload = await Post.findById(id);
     
             if (!this.user || !this.payload) return response.status("500").json({error: "No user found!"});
+            if (!this.user.dev) return response.status("500").json({error: "User is not authorized to edit a post!"});
     
             this.payload.title = title;
             this.payload.body = body;
@@ -150,6 +151,7 @@ export default class PostController {
         this.payload = await Post.findById(id);
 
         if (!this.user || !this.payload) return response.status("500").json({error: "No user found!"});
+        if (!this.user.dev) return response.status("500").json({error: "User is not authorized to delete a post!"});
 
         try {
             await this.payload.remove();
