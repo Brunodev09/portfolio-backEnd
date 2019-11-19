@@ -1,4 +1,6 @@
 import express from 'express';
+import sharp from 'sharp';
+import path from 'path'
 
 import User from '../models/user';
 import Post from '../models/post';
@@ -39,8 +41,8 @@ export default class PostController {
 
     getAll = async (request: express.Request, response: express.Response) => {
         try {
-            this.posts = await Post.find({"private": false});
-        } catch(e) {
+            this.posts = await Post.find({ "private": false });
+        } catch (e) {
             logger.info(e);
             return response.status("500").send('Internal server error');
         }
@@ -51,50 +53,59 @@ export default class PostController {
     get = async (request: express.Request, response: express.Response) => {
         try {
             this.posts = await Post.findById(request.params.id);
-        } catch(e) {
+        } catch (e) {
             logger.info(e);
             return response.status("500").send('Internal server error');
         }
 
         if (this.posts) return response.status("200").json(this.posts);
-        return response.status("404").json({error: "No posts were found with this id!"});
+        return response.status("404").json({ error: "No posts were found with this id!" });
     };
 
     create = async (request: express.Request, response: express.Response) => {
         try {
-            let { title, body, image, privatePost, category } = request.body;
-            if (!title || !body) return response.status("500").json({error: "Missing required data!"});
-    
+            let { title, body, privatePost, category } = request.body;
+            const { filename: image } = request.file;
+
+            let [nameImage] = image.split('.');
+            const fileName = `${nameImage}.jpg`;
+
+            await sharp(request.file.path)
+                .resize(300)
+                .jpeg({ quality: 70 })
+                .toFile(path.resolve())
+
+            if (!title || !body) return response.status("500").json({ error: "Missing required data!" });
+
             if (!category) this.category = Category.GENERAL;
             else {
                 try {
                     this.category = category;
-                } catch(e) {
+                } catch (e) {
                     logger.error(e);
                     this.category = Category.GENERAL;
                 }
             }
-    
+
             this.user = await User.findById(request.user._id);
-    
-            if (!this.user) return response.status("500").json({error: "No user found!"});
-            if (!this.user.dev) return response.status("500").json({error: "User is not authorized to post!"});
-    
+
+            if (!this.user) return response.status("500").json({ error: "No user found!" });
+            if (!this.user.dev) return response.status("500").json({ error: "User is not authorized to post!" });
+
             const { name } = this.user;
             this.obj = { author: request.user._id, name, body, title, category: this.category };
-            if (image) this.obj.image = image;
             if (privatePost) this.obj.private = privatePost;
-    
+
             this.payload = new Post(this.obj);
-    
+
             try {
                 await this.payload.save();
-            } catch(e) {
+            } catch (e) {
                 logger.error(e);
                 return response.status("500").send('Internal server error');
             }
             if (this.payload) return response.status("200").json(this.payload);
-        } catch(e) {
+        } catch (e) {
             logger.error(e);
             return response.status("500").send('Internal server error');
         }
@@ -105,38 +116,38 @@ export default class PostController {
         try {
             let { title, body, image, privatePost, category } = request.body;
             const { id } = request.params;
-            if (!title || !body || !id) return response.status("500").json({error: "Missing required data!"});
-    
+            if (!title || !body || !id) return response.status("500").json({ error: "Missing required data!" });
+
             if (!category) this.category = Category.GENERAL;
             else {
                 try {
                     this.category = category;
-                } catch(e) {
+                } catch (e) {
                     logger.error(e);
                     this.category = Category.GENERAL;
                 }
             }
-    
+
             this.user = await User.findById(request.user._id);
             this.payload = await Post.findById(id);
-    
-            if (!this.user || !this.payload) return response.status("500").json({error: "No user found!"});
-            if (!this.user.dev) return response.status("500").json({error: "User is not authorized to edit a post!"});
-    
+
+            if (!this.user || !this.payload) return response.status("500").json({ error: "No user found!" });
+            if (!this.user.dev) return response.status("500").json({ error: "User is not authorized to edit a post!" });
+
             this.payload.title = title;
             this.payload.body = body;
             this.payload.category = category;
-            if (image) (<IPost> this.payload).image = image;
-            if (privatePost) (<IPost> this.payload).private = privatePost;
-    
+            if (image) (<IPost>this.payload).image = image;
+            if (privatePost) (<IPost>this.payload).private = privatePost;
+
             try {
                 await this.payload.save();
-            } catch(e) {
+            } catch (e) {
                 logger.error(e);
                 return response.status("500").send('Internal server error');
             }
             if (this.payload) return response.status("200").json(this.payload);
-        } catch(e) {
+        } catch (e) {
             logger.error(e);
             return response.status("500").send('Internal server error');
         }
@@ -145,13 +156,13 @@ export default class PostController {
     delete = async (request: express.Request, response: express.Response) => {
 
         const { id } = request.params;
-        if (!id) return response.status("500").json({error: "Missing required data!"});
+        if (!id) return response.status("500").json({ error: "Missing required data!" });
 
         this.user = await User.findById(request.user._id);
         this.payload = await Post.findById(id);
 
-        if (!this.user || !this.payload) return response.status("500").json({error: "No user found!"});
-        if (!this.user.dev) return response.status("500").json({error: "User is not authorized to delete a post!"});
+        if (!this.user || !this.payload) return response.status("500").json({ error: "No user found!" });
+        if (!this.user.dev) return response.status("500").json({ error: "User is not authorized to delete a post!" });
 
         try {
             await this.payload.remove();
@@ -159,7 +170,7 @@ export default class PostController {
             logger.error(e);
             return response.status("500").send('Internal server error');
         }
-        if (this.payload) return response.status("200").json({info: "Document deleted!"});
+        if (this.payload) return response.status("200").json({ info: "Document deleted!" });
     };
 
     createComment = async (request: express.Request, response: express.Response) => {
@@ -167,32 +178,32 @@ export default class PostController {
         try {
             const { id } = request.params;
             const { text } = request.body;
-    
-            if (!id || !text) return response.status("500").json({error: "Missing required data!"});
-    
+
+            if (!id || !text) return response.status("500").json({ error: "Missing required data!" });
+
             try {
                 this.user = await User.findById(request.user._id);
                 this.posts = await Post.findById(id);
             } catch (e) {
                 logger.error(e);
-                return response.status("500").json({error: "Internal server error!"});
+                return response.status("500").json({ error: "Internal server error!" });
             }
-    
-            if (!this.user || !this.posts) return response.status("500").json({error: "No user or posts found!"});
-    
-            this.posts.comments.push({author: request.user._id, text});
-    
+
+            if (!this.user || !this.posts) return response.status("500").json({ error: "No user or posts found!" });
+
+            this.posts.comments.push({ author: request.user._id, text });
+
             try {
                 await this.posts.save();
-            } catch(e) {
+            } catch (e) {
                 logger.error(e);
                 return response.status("500").send('Internal server error');
             }
-    
+
             return response.status("200").json(this.posts);
-        } catch(e) {
+        } catch (e) {
             logger.error(e);
-            return response.status("500").json({error: "Internal server error!"});
+            return response.status("500").json({ error: "Internal server error!" });
 
         }
     };
@@ -200,16 +211,16 @@ export default class PostController {
     getAllComments = async (request: express.Request, response: express.Response) => {
 
         const { id } = request.params;
-        if (!id) return response.status("500").json({error: "Missing required data!"});
+        if (!id) return response.status("500").json({ error: "Missing required data!" });
 
         try {
             this.posts = await Post.findById(id);
         } catch (e) {
             logger.error(e);
-            return response.status("500").json({error: "Internal server error!"});
+            return response.status("500").json({ error: "Internal server error!" });
         }
 
-        if (!this.posts || !this.posts.comments.length) return response.status("500").json({error: "No user or posts found!"});
+        if (!this.posts || !this.posts.comments.length) return response.status("500").json({ error: "No user or posts found!" });
 
         return response.status("200").json(this.posts.comments);
 
@@ -220,63 +231,63 @@ export default class PostController {
         try {
             const { id, cid } = request.params;
             const { text } = request.body;
-    
-            if (!id || !cid || !text) return response.status("500").json({error: "Missing required data!"});
-    
+
+            if (!id || !cid || !text) return response.status("500").json({ error: "Missing required data!" });
+
             try {
                 this.posts = await Post.findById(id);
             } catch (e) {
                 logger.error(e);
-                return response.status("500").json({error: "Internal server error!"});
+                return response.status("500").json({ error: "Internal server error!" });
             }
-    
-            if (!this.posts || !this.posts.comments.length) return response.status("500").json({error: "No user or posts found!"});
-    
+
+            if (!this.posts || !this.posts.comments.length) return response.status("500").json({ error: "No user or posts found!" });
+
             const index = this.posts.comments.findIndex(comment => comment._id.toString() === cid);
-    
-            if (index === null || index === undefined) return response.status("500").json({error: "No comment associated with this id in this post!"});
-    
+
+            if (index === null || index === undefined) return response.status("500").json({ error: "No comment associated with this id in this post!" });
+
             this.posts.comments[index].text = text;
-    
-            try  {
+
+            try {
                 this.posts.save();
             } catch (e) {
                 logger.error(e);
-                return response.status("500").json({error: "Internal server error!"});
+                return response.status("500").json({ error: "Internal server error!" });
             }
-    
+
             return response.status("200").json(this.posts.comments[index]);
-        } catch(e) {
+        } catch (e) {
             logger.error(e);
-            return response.status("500").json({error: "Internal server error!"});
+            return response.status("500").json({ error: "Internal server error!" });
         }
     };
 
     deleteComment = async (request: express.Request, response: express.Response) => {
 
         const { id, cid } = request.params;
-        if (!id || !cid) return response.status("500").json({error: "Missing required data!"});
+        if (!id || !cid) return response.status("500").json({ error: "Missing required data!" });
 
         try {
             this.posts = await Post.findById(id);
         } catch (e) {
             logger.error(e);
-            return response.status("500").json({error: "Internal server error!"});
+            return response.status("500").json({ error: "Internal server error!" });
         }
 
-        if (!this.posts || !this.posts.comments.length) return response.status("500").json({error: "No user or posts found!"});
+        if (!this.posts || !this.posts.comments.length) return response.status("500").json({ error: "No user or posts found!" });
 
         const index = this.posts.comments.findIndex(comment => comment._id.toString() === cid);
 
-        if (index === null || index === undefined) return response.status("500").json({error: "No comment associated with this id in this post!"});
+        if (index === null || index === undefined) return response.status("500").json({ error: "No comment associated with this id in this post!" });
 
         this.posts.comments.splice(index, 1);
 
-        try  {
+        try {
             this.posts.save();
         } catch (e) {
             logger.error(e);
-            return response.status("500").json({error: "Internal server error!"});
+            return response.status("500").json({ error: "Internal server error!" });
         }
 
         return response.status("200").json(this.posts.comments);
