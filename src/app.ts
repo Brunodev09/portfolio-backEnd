@@ -34,15 +34,13 @@ export default class Server {
     }
 
     public listen() {
-        this.app.listen(process.env.PORT || 5000, "0.0.0.0");
+        this.app.listen(process.env.PORT || 5000);
     }
 
     private initMiddlewares() {
         this.app.use(cors());
         this.app.use(
-            express.json({
-                extended: false
-            })
+            express.json()
         );
         this.app.use(logMid);
     }
