@@ -27,7 +27,7 @@ export default class UserController {
         this.router.post(this.path, this.login);
     }
 
-    getUser = async (request: express.Request, response: express.Response) => {
+    getUser = async (request: express.Request & { user: any }, response: express.Response) => {
         try {
             this.user = await User.findById(request.user._id).select('-password');
             if (this.user) return response.json(this.user);
@@ -35,37 +35,37 @@ export default class UserController {
 
         } catch (e) {
             logger.error(e.message);
-            return response.status("500").send('Internal server error');
+            return response.status(500).send('Internal server error');
         }
     };
 
     login = async (request: express.Request, response: express.Response) => {
         let { email, password } = request.body;
-        if (!email || !password) return response.status("400").json({ error: "Missing required data!" });
+        if (!email || !password) return response.status(400).json({ error: "Missing required data!" });
 
-        if (!(Expressions.email(email))) return response.status("500").json({error: "Invalid e-mail!"});
+        if (!(Expressions.email(email))) return response.status(500).json({error: "Invalid e-mail!"});
 
         try {
             this.user = await User.findOne({ email: email });
 
-            if (!this.user) return response.status("500").json({ error: 'No user with this credentials!' });
+            if (!this.user) return response.status(500).json({ error: 'No user with this credentials!' });
 
             password = SHA512(password);
             password = Base64.stringify(UTF8.parse(password));
 
-            if (this.user.password !== password) return response.status("500").json({ error: 'Password incorrect!' });
+            if (this.user.password !== password) return response.status(500).json({ error: 'Password incorrect!' });
 
             const payload = {
                 user: this.user
             };
             jwt.sign(payload, process.env.JWT, { expiresIn: 360000 }, (err, token) => {
                 if (err) throw err;
-                response.status("200").json({ token, user: this.user.name, developer: this.user.dev });
+                response.status(200).json({ token, user: this.user.name, developer: this.user.dev });
             });
 
         } catch (e) {
             logger.error(e.message || e);
-            response.status("500").send('Server error!');
+            response.status(500).send('Server error!');
         }
     }
 }

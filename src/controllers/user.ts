@@ -26,13 +26,13 @@ export default class UserController {
 
     create = async (request: express.Request, response: express.Response) => {
         const {name, email, password} = request.body;
-        if (!name || !email || !password) return response.status("400").json({error: "Missing required data!"});
+        if (!name || !email || !password) return response.status(400).json({error: "Missing required data!"});
 
         try {
             this.user = await User.findOne({email: email});
 
             if (this.user) {
-                return response.status("400").json({errors: 'User already exists!'});
+                return response.status(400).json({errors: 'User already exists!'});
             }
 
             this.user = new User({name, email, password});
@@ -47,12 +47,12 @@ export default class UserController {
             };
             jwt.sign(payload, process.env.JWT, {expiresIn: 360000}, (err, token) => {
                 if (err) throw err;
-                response.status("200").json({token, user: this.user.name, developer: this.user.dev});
+                response.status(200).json({token, user: this.user.name, developer: this.user.dev});
             });
 
         } catch (e) {
             logger.error(e.message || e);
-            response.status("500").send('Server error!');
+            response.status(500).send('Server error!');
         }
     }
 }
