@@ -62,7 +62,7 @@ export default class PostController {
         return response.status(404).json({ error: "No posts were found with this id!" });
     };
 
-    create = async (request: express.Request & { user: any }, response: express.Response) => {
+    create = async (request: express.Request & { user: IUser }, response: express.Response) => {
         try {
             let { title, body, privatePost, category } = request.body;
             const { filename: image } = request.file;
@@ -111,7 +111,7 @@ export default class PostController {
         }
     };
 
-    edit = async (request: express.Request & { user: any }, response: express.Response) => {
+    edit = async (request: express.Request & { user: IUser }, response: express.Response) => {
 
         try {
             let { title, body, image, privatePost, category } = request.body;
@@ -153,7 +153,7 @@ export default class PostController {
         }
     };
 
-    delete = async (request: express.Request & { user: any }, response: express.Response) => {
+    delete = async (request: express.Request & { user: IUser }, response: express.Response) => {
 
         const { id } = request.params;
         if (!id) return response.status(500).json({ error: "Missing required data!" });
@@ -173,7 +173,7 @@ export default class PostController {
         if (this.payload) return response.status(200).json({ info: "Document deleted!" });
     };
 
-    createComment = async (request: express.Request & { user: any }, response: express.Response) => {
+    createComment = async (request: express.Request & { user: IUser }, response: express.Response) => {
 
         try {
             const { id } = request.params;

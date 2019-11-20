@@ -27,7 +27,7 @@ export default class UserController {
         this.router.post(this.path, this.login);
     }
 
-    getUser = async (request: express.Request & { user: any }, response: express.Response) => {
+    getUser = async (request: express.Request & { user: IUser }, response: express.Response) => {
         try {
             this.user = await User.findById(request.user._id).select('-password');
             if (this.user) return response.json(this.user);
