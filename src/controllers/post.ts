@@ -1,12 +1,12 @@
 import express from 'express';
 import sharp from 'sharp';
 import path from 'path'
-
+import mongoose from "mongoose";
+import { unlinkSync } from 'fs';
 import User from '../models/user';
 import Post from '../models/post';
 import logger from "../utils/logger";
 import { IUser, IPost, IComment } from "../interfaces";
-import mongoose from "mongoose";
 import middleware from "../middlewares/auth";
 
 import { Category } from "../utils/constants";
@@ -75,6 +75,8 @@ export default class PostController {
                 .jpeg({ quality: 70 })
                 .toFile(path.resolve())
 
+            unlinkSync(request.file.path);
+
             if (!title || !body) return response.status(500).json({ error: "Missing required data!" });
 
             if (!category) this.category = Category.GENERAL;
@@ -93,7 +95,7 @@ export default class PostController {
             if (!this.user.dev) return response.status(500).json({ error: "User is not authorized to post!" });
 
             const { name } = this.user;
-            this.obj = { author: request.user._id, name, body, title, category: this.category };
+            this.obj = { author: request.user._id, name, body, title, category: this.category, image: fileName };
             if (privatePost) this.obj.private = privatePost;
 
             this.payload = new Post(this.obj);
