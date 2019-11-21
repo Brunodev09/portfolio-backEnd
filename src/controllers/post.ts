@@ -25,12 +25,9 @@ export default class PostController {
     private category: Category;
 
     private upload = multer({
-        storage: multer.diskStorage({
-            destination: join(__dirname, "..", "uploads"),
-            filename: (req, file, cb) => {
-                cb(null, file.originalname);
-            }
-        })
+        limits: {
+            fileSize: 1.5e7
+        }
     });
 
     constructor() {
@@ -41,7 +38,7 @@ export default class PostController {
         this.router.post(
             this.path,
             middleware,
-            this.upload.single("image"),
+            this.upload.single("file"),
             this.create
         );
         this.router.get(this.path, this.getAll);
