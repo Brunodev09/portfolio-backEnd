@@ -1,8 +1,6 @@
 import express from "express";
 import mongoose, { Connection } from "mongoose";
 import cors from "cors";
-import { join } from "path";
-import multer, { diskStorage } from "multer";
 
 import logger from "./utils/logger";
 
@@ -16,14 +14,6 @@ export default class Server {
     public app: express.Application;
     public port: number;
     connection: Connection;
-    private upload = multer({
-        storage: diskStorage({
-            destination: join(__dirname, "..", "uploads"),
-            filename: (req, file, cb) => {
-                cb(null, file.originalname);
-            }
-        })
-    });
 
     constructor(controllers: Controller[]) {
         this.app = express();
@@ -39,15 +29,14 @@ export default class Server {
 
     private initMiddlewares() {
         this.app.use(cors());
-        this.app.use(
-            express.json()
-        );
+        this.app.use(express.json());
+        this.app.use(express.urlencoded({ extended: true }));
         this.app.use(logMid);
     }
 
     private initControllers(controllers: Controller[]) {
         for (let controller of controllers) {
-            this.app.use("/", this.upload.single("image"), controller.router);
+            this.app.use("/", controller.router);
         }
     }
 
