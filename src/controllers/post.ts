@@ -89,7 +89,6 @@ export default class PostController {
         response: express.Response
     ) => {
         try {
-            logger.info(request.body + "fuck");
             let { title, body, privatePost, category } = request.body;
 
             this.user = await User.findById(request.user._id);
