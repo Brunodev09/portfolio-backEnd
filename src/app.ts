@@ -2,7 +2,7 @@ import express from "express";
 import mongoose, { Connection } from "mongoose";
 import { join } from 'path'
 import cors from "cors";
-
+import multiparty from 'connect-multiparty';
 import logger from "./utils/logger";
 
 // Middlewares
@@ -33,7 +33,10 @@ export default class Server {
         this.app.use(express.json());
         this.app.use(express.urlencoded({ extended: true }));
         this.app.use(logMid);
-        this.app.use('/files', express.static(join(__dirname, 'uploads')))
+        this.app.use('/files', express.static(join(__dirname, 'uploads')));
+        this.app.use(multiparty({
+            uploadDir: `${__dirname}/uploads`
+        }));
     }
 
     private initControllers(controllers: Controller[]) {
