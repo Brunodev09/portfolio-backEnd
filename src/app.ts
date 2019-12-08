@@ -1,9 +1,8 @@
 import express from "express";
 import mongoose, { Connection } from "mongoose";
-import cors from "cors";
 import { join } from "path";
-
 import logger from "./utils/logger";
+import cors from "cors";
 
 // Middlewares
 import logMid from "./middlewares/log";
@@ -32,6 +31,7 @@ export default class Server {
         this.app.use(cors());
         this.app.use(express.json());
         this.app.use(logMid);
+        this.app.use(express.urlencoded({ extended: true }));
     }
 
     private initControllers(controllers: Controller[]) {
