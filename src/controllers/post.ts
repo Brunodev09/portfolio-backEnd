@@ -24,23 +24,12 @@ export default class PostController {
     private obj: IPost | IComment;
     private category: Category;
 
-    private upload = multer({
-        limits: {
-            fileSize: 1.5e7
-        }
-    });
-
     constructor() {
         this.init();
     }
 
     public init() {
-        this.router.post(
-            this.path,
-            middleware,
-            this.upload.single("file"),
-            this.create
-        );
+        this.router.post(this.path, middleware, this.create);
         this.router.get(this.path, this.getAll);
         this.router.get(`${this.path}/:id`, this.get);
         this.router.put(`${this.path}/:id`, middleware, this.edit);
@@ -82,9 +71,7 @@ export default class PostController {
     };
 
     create = async (
-        request: express.Request & { user: IUser },
-        response: express.Response
-    ) => {
+        request: express.Request & { user: IUser }, response: express.Response) => {
         try {
             let { title, body, privatePost, category } = request.body;
 
