@@ -7,7 +7,7 @@ import User from '../models/user';
 import Post from '../models/post';
 import logger from "../utils/logger";
 import { IUser, IPost, IComment } from "../interfaces";
-import middleware from "../middlewares/auth";
+import middleware from "../middlewares/auth";   
 
 import { Category } from "../utils/constants";
 
@@ -65,17 +65,6 @@ export default class PostController {
     create = async (request: express.Request & { user: IUser }, response: express.Response) => {
         try {
             let { title, body, privatePost, category } = request.body;
-            const { filename: image } = request.file;
-
-            let [nameImage] = image.split('.');
-            const fileName = `${nameImage}.jpg`;
-
-            await sharp(request.file.path)
-                .resize(300)
-                .jpeg({ quality: 70 })
-                .toFile(path.resolve())
-
-            unlinkSync(request.file.path);
 
             if (!title || !body) return response.status(500).json({ error: "Missing required data!" });
 
@@ -95,7 +84,7 @@ export default class PostController {
             if (!this.user.dev) return response.status(500).json({ error: "User is not authorized to post!" });
 
             const { name } = this.user;
-            this.obj = { author: request.user._id, name, body, title, category: this.category, image: fileName };
+            this.obj = { author: request.user._id, name, body, title, category: this.category };
             if (privatePost) this.obj.private = privatePost;
 
             this.payload = new Post(this.obj);
